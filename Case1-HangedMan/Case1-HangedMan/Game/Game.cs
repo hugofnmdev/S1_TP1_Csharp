@@ -23,15 +23,22 @@ namespace Case1_HangedMan.Game
          */
         public static char GetInput()
         {
-            char input = Convert.ToChar(Console.ReadLine());
-            if ((input == null) || (Char.IsLetter(input)) || (Convert.ToString(input).Length > 1))
+            string input = Console.ReadLine();
+            char inputchar = Convert.ToChar(input);
             {
-                Console.WriteLine("Invalid Argument");
-                return '0';
-            }
-            else
-            {
-                return input;
+                if (input.Length is > 1 or 0 || !char.IsLetter(input[0]))
+                {
+                    Console.Error.WriteLine("Invalid Argument");
+                    return '0';
+                }
+                
+                if (inputchar <= 90)
+                {
+                    inputchar = (char) (@inputchar + 32);
+                    return inputchar;
+                }
+                return inputchar;
+
             }
         }
 
@@ -43,7 +50,15 @@ namespace Case1_HangedMan.Game
         public static void DisplayWord(char[] guessedWord, string usedLetters)
         {
             Console.Clear();
-            Console.WriteLine("Your guess :" + guessedWord + ", Used Letters: " + usedLetters);
+            int len = guessedWord.Length;
+            int i = 0;
+            Console.Write("Your guess : ");
+            while (i < len)
+            {
+                Console.Write(guessedWord[i]);
+                i++;
+            }
+            Console.Write(" " + ", Used Letters: " + usedLetters);
         }
 
         /*
@@ -56,11 +71,12 @@ namespace Case1_HangedMan.Game
          */
         public static void DisplayHangman(string usedLetters, Loader.GameState gameState)
         {
-            Console.WriteLine(Loader.Ascii[usedLetters.Length]);
+            int count = usedLetters.Length;
+            Console.WriteLine(Loader.Ascii[count]);
             if (gameState == Loader.GameState.WON)
-                Console.WriteLine(Loader.Ascii[9]);
+                Console.WriteLine(Loader.Ascii[Loader.Defeat]);
             else if (gameState == Loader.GameState.LOST)
-                Console.WriteLine(Loader.Ascii[8]);
+                Console.WriteLine(Loader.GameState.LOST);
         }
 
         /*
@@ -69,8 +85,18 @@ namespace Case1_HangedMan.Game
          */
         public static bool ContainsLetter(char[] guessedWord, char letter)
         {
-            // TODO remove this
-            throw new NotImplementedException();
+            int i = 0;
+            int len = WordToGuess.Length;
+            while (i < len)
+            {
+                if (guessedWord[i] == letter)
+                {
+                    return true;
+                }
+
+                i++;
+            }
+            return false;
         }
         
         /*
@@ -85,11 +111,36 @@ namespace Case1_HangedMan.Game
          * (you may also use 'new string()' but ContainsLetter will be expected and tested)
          * At the end call DisplayWord and DisplayHangman and return usedLetters
          */
-        public static string ValidateLetter(char[] guessedWord, string usedLetters, char letter, 
+        public static string ValidateLetter(char[] guessedWord, string usedLetters, char letter,
             Loader.GameState gameState)
         {
-            // TODO remove this
-            throw new NotImplementedException();
+            int n = 0;
+            int len = WordToGuess.Length;
+            if (usedLetters.Contains(letter))
+            {
+                Console.Error.Write("This letter was already used");
+                return usedLetters;
+            }
+
+            if (ContainsLetter(guessedWord, letter))
+                Console.Error.Write("This letter was already guessed");
+            else
+            {
+                while (n < len)
+                {
+                    if (WordToGuess[n] == letter)
+                        guessedWord[n] = letter;
+                    n++;
+                }
+
+            }
+
+            if (!WordToGuess.Contains(letter))
+                usedLetters += letter;
+
+            DisplayWord(guessedWord, usedLetters);
+            DisplayHangman(usedLetters, gameState);
+            return usedLetters;
         }
 
         /*
@@ -101,12 +152,14 @@ namespace Case1_HangedMan.Game
          */
         public static Loader.GameState GameStatus(char[] guessedWord, string usedLetters, int attempts)
         {
-            if (usedLetters.Length > attempts)
+            int len = usedLetters.Length;
+            string wordGuessed = new string(guessedWord); ;
+            int length = WordToGuess.Length;
+            if (8<=attempts+len)
                 return Loader.GameState.LOST;
-            else if (Convert.ToString(guessedWord) == WordToGuess)
+            if (wordGuessed == WordToGuess)
                 return Loader.GameState.WON;
-            else 
-                return Loader.GameState.RUNNING;
+            return Loader.GameState.RUNNING;
         }
 
         /*
@@ -116,8 +169,12 @@ namespace Case1_HangedMan.Game
          */
         public static void EndScreen(char[] guessedWord, string usedLetters, Loader.GameState gameState)
         {
-            // TODO remove this
-            throw new NotImplementedException();
+            Console.WriteLine("The word was "+WordToGuess);
+            if (gameState == Loader.GameState.WON)
+                Console.WriteLine("Congrats ! You found the word !");
+            if (gameState == Loader.GameState.LOST)
+                Console.WriteLine("Bruh, you lost...");
+            
         }
         
         /*
@@ -134,8 +191,28 @@ namespace Case1_HangedMan.Game
          */
         public static void LaunchGame()
         {
-            // TODO remove this
-            throw new NotImplementedException();
+            int len = WordToGuess.Length;
+            char[] guessedWord = Loader.GetEmptyDuplicate(WordToGuess);
+            string usedLetters = "";
+            Loader.GameState gameState = Loader.GameState.RUNNING;
+            int attempts = Loader.Attempts-Loader.Attempts;
+            
+
+            DisplayWord(guessedWord, usedLetters);
+            DisplayHangman(usedLetters, gameState);
+            while (gameState == Loader.GameState.RUNNING)
+            {
+                Console.Write("Guess a letter: ");
+                char letter = GetInput();
+                if (letter != '\0')
+                {
+                    usedLetters = ValidateLetter(guessedWord, usedLetters, letter, gameState);
+                    gameState = GameStatus(guessedWord, usedLetters, attempts);
+                }
+
+            }
+
+            EndScreen(guessedWord, usedLetters, gameState);
         }
     }
 }

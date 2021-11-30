@@ -7,7 +7,7 @@ namespace Case1_HangedMan
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Game.GetInput());
+            Loops.PerfectNumber(2);
             // Leave it empty for the last push, use it to call and test your functions
         }
     }
